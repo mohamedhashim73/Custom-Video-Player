@@ -16,15 +16,15 @@ class _CustomVideoPlayerFromNetworkScreenState extends State<CustomVideoPlayerFr
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(
-        'https://zain-physics.online/public/app/videos/66fac3bfe9876_820215932.mp4')..setLooping(true)
-      ..initialize()..play().then((_) {
-        setState(() {});
-      });
+    _controller = VideoPlayerController.network('https://zain-physics.online/public/app/videos/66fac3bfe9876_820215932.mp4')..initialize()..setLooping(true);
+    _controller.play().then((e) async {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _controller.dispose();
     super.dispose();
   }
@@ -36,13 +36,17 @@ class _CustomVideoPlayerFromNetworkScreenState extends State<CustomVideoPlayerFr
       appBar: getOrientation(context) == Orientation.portrait ? AppBar(title: const Text("Custom Video Player"),backgroundColor: Colors.blue,foregroundColor: Colors.white) : null,
       body: Builder(
         builder: (context){
-          if( _controller.value.isInitialized )
+          if( _controller.value.isInitialized || _controller.value.isPlaying )
           {
             return ListView(
               children: [
                 InkWell(
                   onTap: ()=> setState(() {
                     showControlTools = !showControlTools;
+                    Future.delayed(const Duration(seconds: 3),(){
+                    if( showControlTools == true ) {
+                      setState(() {showControlTools = false;});
+                    }});
                   }),
                   child: Stack(
                     alignment: Alignment.center,
@@ -54,78 +58,78 @@ class _CustomVideoPlayerFromNetworkScreenState extends State<CustomVideoPlayerFr
                             aspectRatio: MediaQuery.of(context).orientation == Orientation.portrait ? 9/16 : 16/9,
                             child: VideoPlayer(_controller),
                           ),
-                          if( showControlTools )
-                            Column(
-                              children: [
-                                VideoProgressIndicator(
-                                  _controller,
-                                  allowScrubbing: true,
-                                  colors: const VideoProgressColors(
-                                    playedColor: Colors.blue,
-                                    bufferedColor: Colors.grey,
-                                    backgroundColor: Colors.black,
-                                  ),
+                          Column(
+                            children: [
+                              VideoProgressIndicator(
+                                _controller,
+                                allowScrubbing: true,
+                                colors: VideoProgressColors(
+                                  playedColor: showControlTools ? Colors.blue : Colors.white,
+                                  bufferedColor: Colors.white24,
+                                  backgroundColor: Colors.grey,
                                 ),
+                              ),
+                              if( showControlTools )
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    IconButton(
-                                      icon: Icon(_controller.value.volume == 1 ? Icons.volume_mute : Icons.volume_up,color: Colors.white),
-                                      onPressed: () async {
-                                        _controller.value.volume == 0
-                                            ? _controller.setVolume(1)
-                                            : _controller.setVolume(0);
-                                        setState((){});
-                                      },
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(_controller.value.volume == 1 ? Icons.volume_mute : Icons.volume_up,color: Colors.white),
+                                    onPressed: () async {
+                                      _controller.value.volume == 0
+                                          ? _controller.setVolume(1)
+                                          : _controller.setVolume(0);
+                                      setState((){});
+                                    },
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        InkWell(
+                                          child: Image.asset("assets/backward-5-seconds.png",color: Colors.white,height: 22,width: 22),
+                                          onTap: () async {
+                                            Duration newPosition = _controller.value.position - const Duration(seconds: 5);
+                                            await _controller.seekTo(newPosition);
+                                            _controller.value.isPlaying
+                                                ? _controller.pause()
+                                                : _controller.play();
+                                            setState((){});
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(_controller.value.isPlaying ? Icons.pause : Icons.play_arrow,color: Colors.white,size: 22),
+                                          onPressed: (){
+                                            _controller.value.isPlaying
+                                                ? _controller.pause()
+                                                : _controller.play();
+                                            setState(() {});
+                                          },
+                                        ),
+                                        InkWell(
+                                          child: Image.asset("assets/forward-5-seconds.png",color: Colors.white,height: 22,width: 22),
+                                          onTap: () async {
+                                            Duration newPosition = _controller.value.position + const Duration(seconds: 5);
+                                            await _controller.seekTo(newPosition);
+                                            _controller.value.isPlaying
+                                                ? _controller.pause()
+                                                : _controller.play();
+                                            setState((){});
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    Expanded(
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.skip_previous,color: Colors.white),
-                                            onPressed: () async {
-                                              Duration newPosition = _controller.value.position - const Duration(seconds: 10);
-                                              await _controller.seekTo(newPosition);
-                                              _controller.value.isPlaying
-                                                  ? _controller.pause()
-                                                  : _controller.play();
-                                              setState((){});
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon: Icon(_controller.value.isPlaying ? Icons.pause : Icons.play_arrow,color: Colors.white),
-                                            onPressed: (){
-                                              _controller.value.isPlaying
-                                                  ? _controller.pause()
-                                                  : _controller.play();
-                                              setState(() {});
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.skip_next,color: Colors.white),
-                                            onPressed: () async {
-                                              Duration newPosition = _controller.value.position + const Duration(seconds: 10);
-                                              await _controller.seekTo(newPosition);
-                                              _controller.value.isPlaying
-                                                  ? _controller.pause()
-                                                  : _controller.play();
-                                              setState((){});
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.fullscreen,color: Colors.white),
-                                      onPressed: () async {
-                                        await SystemChrome.setPreferredOrientations([MediaQuery.of(context).orientation == Orientation.landscape ? DeviceOrientation.portraitUp : DeviceOrientation.landscapeRight]);
-                                      },
-                                    ),
-                                  ],
-                                )
-                              ],
-                            )
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.fullscreen,color: Colors.white),
+                                    onPressed: () async {
+                                      await SystemChrome.setPreferredOrientations([MediaQuery.of(context).orientation == Orientation.landscape ? DeviceOrientation.portraitUp : DeviceOrientation.landscapeRight]);
+                                    },
+                                  ),
+                                ],
+                              )
+                            ],
+                          )
                         ],
                       ),
                     ],

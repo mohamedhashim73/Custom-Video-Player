@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_player_app/Screens/custom_video_player_from_network_screen.dart';
+import 'package:video_player_app/Screens/layout_screen.dart';
 
 void main() => runApp(const MyApp());
 
@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CustomVideoPlayerFromNetworkScreen(),
+      home: LayoutScreen(),
     );
   }
 }
